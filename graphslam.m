@@ -43,9 +43,9 @@ for t = 2:length(mu)
     Xi(pos(3,t)) = Xi(pos(3,t)) + xi_temp(pos(3,2));
 end
 mu_t = mu(:,T+1);
-z_1t = xy2rb(z_1t, mu);
+z_1t = xy2rb(z_1t);
 map = zeros(3*landmark_n, 1);
-for t = 1:1 % T+1
+for t = 2:T+1 % T+1
     Q = 0.05*eye(3,3);
     z = z_1t(pos(2,t),:);
     for j = 1:landmark_n
@@ -67,4 +67,10 @@ for t = 1:1 % T+1
         Xi(pos(3,t)) = Xi(pos(3,t)) + xi_temp(pos(3,1));
         Xi(pos(3,T+1+j)) = Xi(pos(3,T+1+j)) + xi_temp(pos(3,2));
     end
+end
+
+%% GraphSLAM_reduce(Omega, Xi)
+Omega_til = Omega; Xi_til = Xi;
+for j = 1:landmark_n
+    
 end
