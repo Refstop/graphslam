@@ -1,7 +1,5 @@
-function G = J_G(mu,u,delta_t)
-v_w = u(1)/u(2);
-delta_th = u(2)*delta_t;
-J_x = -v_w*cos(mu(3))+v_w*cos(mu(3)+delta_th);
-J_y = -v_w*sin(mu(3))+v_w*sin(mu(3)+delta_th);
+function G = J_G(x,u)
+J_x = -u(1)*sin(x(3))-u(2)*cos(x(3));
+J_y = u(1)*cos(x(3))-u(2)*sin(x(3));
 G = [1,0,J_x; 0,1,J_y; 0,0,1];
 end
