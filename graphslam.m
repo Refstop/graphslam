@@ -7,74 +7,74 @@ mu = [0;0;0]; % x와 동일
 
 %% test example
 
-landmark_n = 2;
-
-u1 = [2,0,0];
-u2 = [0,2,pi/2];
-u3 = [0,2,pi/2];
-u4 = [0,2,pi/2];
-u_1t = [u1;u2;u3;u4]';
-
-z1 = [-1,1;1,1];
-z2 = [-1,1;-1,-1];
-z3 = [-1,1;-3,1];
-z4 = [-1,1;-1,3];
-z_1t = {z1',z2',z3',z4'};
-
-T = length(u_1t(1,:));
-
-for t = 1:T
-    r = var*randn(x_dim,1);
-    u_1t(:,t) = u_1t(:,t) + r; % 1s, 2s, 3s
-end
-
-
-for t = 1:T
-    r = var*randn(landmark_n,m_dim);
-    z_1t{t} = z_1t{t} + r;
-end
-
-c1 = [1,2];
-c2 = [1,2];
-c3 = [1,2];
-c4 = [1,2];
-c = {c1;c2;c3;c4};
+% landmark_n = 2;
+% 
+% u1 = [2,0,0];
+% u2 = [0,2,pi/2];
+% u3 = [0,2,pi/2];
+% u4 = [0,2,pi/2];
+% u_1t = [u1;u2;u3;u4]';
+% 
+% z1 = [-1,1;1,1];
+% z2 = [-1,1;-1,-1];
+% z3 = [-1,1;-3,1];
+% z4 = [-1,1;-1,3];
+% z_1t = {z1',z2',z3',z4'};
+% 
+% T = length(u_1t(1,:));
+% 
+% for t = 1:T
+%     r = var*randn(x_dim,1);
+%     u_1t(:,t) = u_1t(:,t) + r; % 1s, 2s, 3s
+% end
+% 
+% 
+% for t = 1:T
+%     r = var*randn(landmark_n,m_dim);
+%     z_1t{t} = z_1t{t} + r;
+% end
+% 
+% c1 = [1,2];
+% c2 = [1,2];
+% c3 = [1,2];
+% c4 = [1,2];
+% c = {c1;c2;c3;c4};
 
 %% load data from file
-% data = importdata("input.txt");
-% N = length(data.data);
-% 
-% measure = [];
-% t = [];
-% u_1t = [];
-% tmp = 0;
-% landmark_n = 1;
-% 
-% for i = 1:N
-%     if strcmp(data.textdata{i}, 'EDGE_SE2')
-%         t = [t,data.data(i,2)];
-%         u_1t = [u_1t,data.data(i,3:5)'];
-%     elseif strcmp(data.textdata{i}, 'EDGE_SE2_XY')
-%         measure = [measure;data.data(i,1:4)];
-%     end
-% end
-% T = length(t);
-% c = cell(T,1);
-% z_1t = cell(T,1);
-% measure_N = length(measure);
-% for i = 1:measure_N
-%     if tmp ~= measure(i,1)
-%         tmp = measure(i,1);
-%         time = tmp - landmark_n + 1;
-%     end
-%     if tmp <= measure(i,2)
-%         fdict(landmark_n) = measure(i,2);
-%         landmark_n = landmark_n + 1;
-%     end
-%     c{time} = [c{time}, find(fdict == measure(i,2))];
-%     z_1t{time} = [z_1t{time}, measure(i,3:4)'];
-% end
-% landmark_n = landmark_n - 1;
+data = importdata("input.txt");
+N = length(data.data);
+
+measure = [];
+t = [];
+u_1t = [];
+tmp = 0;
+landmark_n = 1;
+
+for i = 1:N
+    if strcmp(data.textdata{i}, 'EDGE_SE2')
+        t = [t,data.data(i,2)];
+        u_1t = [u_1t,data.data(i,3:5)'];
+    elseif strcmp(data.textdata{i}, 'EDGE_SE2_XY')
+        measure = [measure;data.data(i,1:4)];
+    end
+end
+T = length(t);
+c = cell(T,1);
+z_1t = cell(T,1);
+measure_N = length(measure);
+for i = 1:measure_N
+    if tmp ~= measure(i,1)
+        tmp = measure(i,1);
+        time = tmp - landmark_n + 1;
+    end
+    if tmp <= measure(i,2)
+        fdict(landmark_n) = measure(i,2);
+        landmark_n = landmark_n + 1;
+    end
+    c{time} = [c{time}, find(fdict == measure(i,2))];
+    z_1t{time} = [z_1t{time}, measure(i,3:4)'];
+end
+landmark_n = landmark_n - 1;
 
 %% GraphSLAM_initialize(u_1:t)
 for t = 1:T
