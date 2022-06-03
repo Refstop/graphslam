@@ -9,7 +9,7 @@ hold on;
 grid on;
 
 %% Gauss-newton
-% p(1)*x.^2+p(2)*x+p(3) 모델이 필요 - 모델이 왜 필요해?
+% p(1)*x.^2+p(2)*x+p(3) 모델이 필요
 p = ones(3,1);
 
 max_iter = 10;
