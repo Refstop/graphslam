@@ -1,4 +1,4 @@
-function j_e = J_e(z, xi, xj)
+function j_e = J_u(z, xi, xj)
 j_e = zeros(3,6);
 % dx/dxi(d는 편미분)
 j_e(1,1) = -cos(xi(3)); j_e(1,2) = -sin(xi(3));
