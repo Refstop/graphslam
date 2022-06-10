@@ -10,8 +10,14 @@ R(3,3) = deg2rad(1);
 
 Q = var*eye(m_dim,m_dim);
 
+R_ld = 0.001*eye(x_dim,x_dim);
+R_ld(3,3) = deg2rad(0.1);
+
 %% test data
 [z_1t, u_1t, c, landmark_n, T, ij] = loadexample();
+t_ld = 5;
+z_ld = [0.001;0.001;0.001];
+c_ld = [1,5];
 x_plot = [0;0;0];
 u_tf = eye(3);
 for t = 1:T
@@ -38,6 +44,7 @@ hold on;
 X = zeros(x_dim + m_dim*landmark_n, T+1);
 Omega_u = inv(R);
 Omega_z = inv(Q);
+Omega_ld = inv(R_ld);
 
 max_iter = 10;
 for iter = 1:max_iter
@@ -54,6 +61,8 @@ for iter = 1:max_iter
         
         J_ue = J_u(u_1t(:,id_i), X(1:3,id_i), X(1:3,id_j));
         error_sum = error_sum + error_u'*error_u;
+
+        % 즉시 대입이 더 빠름
         H_ii = J_ue(:,1:3)'*Omega_u*J_ue(:,1:3);
         H_jj = J_ue(:,4:6)'*Omega_u*J_ue(:,4:6);
         H_ij = J_ue(:,1:3)'*Omega_u*J_ue(:,4:6);
@@ -76,8 +85,8 @@ for iter = 1:max_iter
         for i = 1:c_N
             j = c{t}(i);
             m_range = x_dim + m_dim*(i-1)+1:x_dim + m_dim*i;
-            error_z = h(X(1:3,t+1), X(m_range,t)) - z(:,j);
-            J_ze = J_z(X(1:3,t+1), X(m_range,t));
+            error_z = h(X(1:3,t+1), X(m_range,t+1)) - z(:,j);
+            J_ze = J_z(X(1:3,t+1), X(m_range,t+1));
             H_ii = J_ze(:,1:3)'*Omega_z*J_ze(:,1:3);
             H_jj = J_ze(:,4:5)'*Omega_z*J_ze(:,4:5);
             H_ij = J_ze(:,1:3)'*Omega_z*J_ze(:,4:5);
@@ -94,13 +103,33 @@ for iter = 1:max_iter
             b(id_x_range) = b(id_x_range) + b_i;
             b(id_m_range) = b(id_m_range) + b_j;
         end
-        % 바로바로 대입이 더 빠름
-%         F_J = zeros(x_dim, x_dim*(T+1));
-%         F_J(:,id_i_range) = J(:,1:3);
-%         F_J(:,id_j_range) = J(:,4:6);
-%         H = H + F_J'*Omega*F_J;
-%         b = b + -F_J'*Omega*error;
+        % loop closure
+        if t == t_ld
+            id_k = c_ld(1); id_l = c_ld(2);
+            x_k_tf = v2t(X(1:3,id_k));
+            x_l_tf = v2t(X(1:3,id_l));
+            z_kl_tf = v2t(z_ld);
+            error_ld = t2v(inv(z_kl_tf)*(inv(x_k_tf)*x_l_tf));
+            J_lde = J_u(z_ld, X(1:3,id_k), X(1:3,id_l));
+
+            H_kk = J_lde(:,1:3)'*Omega_ld*J_lde(:,1:3);
+            H_ll = J_lde(:,4:6)'*Omega_ld*J_lde(:,4:6);
+            H_kl = J_lde(:,1:3)'*Omega_ld*J_lde(:,4:6);
+            b_k = -J_lde(:,1:3)'*Omega_ld*error_ld;
+            b_l = -J_lde(:,4:6)'*Omega_ld*error_ld;
+        
+            id_k_range = x_dim*(id_k-1)+1:x_dim*id_k;
+            id_l_range = x_dim*(id_l-1)+1:x_dim*id_l;
+
+            H(id_k_range, id_k_range) = H(id_k_range, id_k_range) + H_kk;
+            H(id_l_range, id_l_range) = H(id_l_range, id_l_range) + H_ll;
+            H(id_k_range, id_l_range) = H(id_k_range, id_l_range) + H_kl;
+            H(id_l_range, id_k_range) = H(id_l_range, id_k_range) + H_kl';
+            b(id_k_range) = b(id_k_range) + b_k;
+            b(id_l_range) = b(id_l_range) + b_l;
+        end
     end
+    
     % ???
     H(1:3,1:3) = H(1:3,1:3) + eye(3); % lm?
     SH=sparse(H);
